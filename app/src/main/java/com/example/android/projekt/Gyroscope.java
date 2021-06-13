@@ -5,12 +5,16 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.View;
 
-public class Gyroscope {
+import model.Place;
+
+public class Gyroscope{
 
     public interface Listener
     {
         void onRotation(float rx, float ry, float rz);
+
     }
 
     private Listener listener;
@@ -27,6 +31,7 @@ public class Gyroscope {
     Gyroscope(Context context)
     {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        //Rodzaj sensora
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         sensorEventListener = new SensorEventListener() {
             @Override
@@ -34,8 +39,8 @@ public class Gyroscope {
                 if(listener !=null)
                 {
                     listener.onRotation(event.values[0], event.values[1], event.values[2]);
-                }
 
+                }
             }
 
             @Override

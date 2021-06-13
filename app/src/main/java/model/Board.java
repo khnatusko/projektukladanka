@@ -1,63 +1,67 @@
 package model;
 
+import android.content.Context;
+import android.view.View;
+
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Board {
+public class Board{
 
-    private final int size;
-
-
-    private int numOfMoves;
+    public final int size;
 
 
-    private final List<Place> places;
+    public int numOfMoves;
 
+    public Board board;
 
-    private final List<BoardChangeListener> listeners;
+    public final List<Place> places;
 
+    public final List<BoardChangeListener> listeners;
 
-    private final static Random random = new Random();
+    public final static Random random = new Random();
 
-
+//Plansza
     public Board(int size) {
-        listeners = new ArrayList<BoardChangeListener>();
-        this.size = size;
+
+       listeners = new ArrayList<BoardChangeListener>();
+       this.size = size;
         places = new ArrayList<Place>(size * size);
+        //Dodawania kafelków na plansze
         for (int x = 1; x <= size; x++) {
             for (int y = 1; y <= size; y++) {
-                places.add(x == size && y == size ?
-                        new Place(x, y, this)
-                        : new Place(x, y, (y - 1)* size + x, this));
+                       places.add(x == size && y == size ?
+                              new Place(x, y, this)
+                               : new Place(x, y, (y-1)*size + x, this));
             }
         }
-        numOfMoves = 0;
     }
 
-
+//Różnorakie zmienianie kafelków przy każdym odpaleniu
     public void rearrange() {
-        numOfMoves = 0;
         for (int i = 0; i < size*size; i++) {
-            swapTiles();
+           swapTiles();
         }
-        do {
-            swapTiles();
+       do {
+           swapTiles();
         } while (!solvable() || solved());
-    }
+   }
 
+//Zamiana kafelek
+    public void swapTiles() {
+       Place p1 = at(random.nextInt(size) + 1 , random.nextInt(size) + 1);
+       Place p2 = at(random.nextInt(size) + 1, random.nextInt(size) + 1);
 
-    private void swapTiles() {
-        Place p1 = at(random.nextInt(size) + 1, random.nextInt(size) + 1);
-        Place p2 = at(random.nextInt(size) + 1, random.nextInt(size) + 1);
-        if (p1 != p2) {
+       if (p1 != p2) {
             Tile t = p1.getTile();
             p1.setTile(p2.getTile());
             p2.setTile(t);
         }
     }
 
-
+//Możliwe do rozwiązania plansza
     private boolean solvable() {
 
         int inversion = 0;
@@ -81,12 +85,12 @@ public class Board {
                 (isEvenSize && isBlankOnOddRow == isEvenInversion);
     }
 
-
+//zwrócenie pierwszego indexu p
     private int indexOf(Place p) {
-        return (p.getY() - 1) * size + p.getX();
+        return (p.getY()-1) * size + p.getX();
 
     }
-
+//Rozwiązana plansza
     public boolean solved() {
         boolean result = true;
         for (Place p: places) {
@@ -98,44 +102,101 @@ public class Board {
         return result;
     }
 
-
+//Poruszanie sie po planszy
     public void slide(Tile tile) {
         for (Place p: places) {
             if (p.getTile() == tile) {
-                final Place to = blank();
-                to.setTile(tile);
+                final Place aa = blank();
+                aa.setTile(tile);
                 p.setTile(null);
-                numOfMoves++;
-                notifyTileSliding(p, to, numOfMoves);
-                if (solved()) {
-                    notifyPuzzleSolved(numOfMoves);
-                }
+
+                //if (solved()) {
+                //    notifyPuzzleSolved(numOfMoves);
+                //}
                 return;
             }
         }
     }
 
+    public void slideG(Tile tile) {
+        for (Place p: places) {
+            if (p.getTile() == null) {
+                final Place bb = notblank(tile);
+                bb.setTile(null);
+                p.setTile(tile);
+
+                return;
+            }
+        }
+    }
+
+
+//Czy możliwe jest poruszanie
     public boolean slidable(Place place) {
+
+
         int x = place.getX();
         int y = place.getY();
         return isBlank(x - 1, y) || isBlank(x + 1, y)
                 || isBlank(x, y - 1) || isBlank(x, y + 1);
     }
 
+    public boolean slidableDown(Place place){
+        int x = place.getX();
+        int y = place.getY();
+        return isBlank(x, y + 1);
+    }
+
+    public boolean slidableUp(Place place){
+        int x = place.getX();
+        int y = place.getY();
+        return isBlank(x, y - 1);
+    }
+
+    public boolean slidableLeft(Place place){
+        int x = place.getX();
+        int y = place.getY();
+        return isBlank(x - 1, y);
+    }
+
+    public boolean slidableRight(Place place){
+        int x = place.getX();
+        int y = place.getY();
+        return isBlank(x + 1, y);
+        }
+
+
+    //Czy jest puste miejsce
     private boolean isBlank(int x, int y) {
         return (0 < x && x <= size) && (0 < y && y <= size)
                 && at(x,y).getTile() == null;
     }
 
+    public boolean isTile(int x, int y){
+        return (0 < x && x <= size) && (0 < y && y <= size)
+                && at(x,y).getTile() != null;
+    }
+
+    //puste miejsce
     public Place blank() {
         for (Place p: places) {
-            if (p.getTile() == null) {
+           if (p.getTile() == null) {
                 return p;
             }
         }
+       return null;
+    }
 
+
+    public Place notblank(Tile tile){
+        for (Place p: places) {
+            if (p.getTile() == tile) {
+                return p;
+            }
+        }
         return null;
     }
+
 
     public Iterable<Place> places() {
         return places;
@@ -147,16 +208,12 @@ public class Board {
                 return p;
             }
         }
-
-        return null;
+       return null;
     }
 
+    //rozmiar
     public int size() {
         return size;
-    }
-
-    public int numOfMoves() {
-        return numOfMoves;
     }
 
     public void addBoardChangeListener(BoardChangeListener listener) {
@@ -164,26 +221,14 @@ public class Board {
             listeners.add(listener);
         }
     }
-
-    public void removeBoardChangeListener(BoardChangeListener listener) {
-        listeners.remove(listener);
-    }
-
-    private void notifyTileSliding(Place from, Place to, int numOfMove) {
-        for (BoardChangeListener listener: listeners) {
-            listener.tileSlid(from, to, numOfMoves);
-        }
-    }
-
-    private void notifyPuzzleSolved(int numOfMoves) {
+//Powiadomienie o rozwiązaniu układanki
+   private void notifyPuzzleSolved(int numOfMoves) {
         for (BoardChangeListener listener: listeners) {
             listener.solved(numOfMoves);
         }
     }
 
     public interface BoardChangeListener {
-
-        void tileSlid(Place from, Place to, int numOfMoves);
 
         void solved(int numOfMoves);
     }

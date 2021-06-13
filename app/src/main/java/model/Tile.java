@@ -2,7 +2,7 @@ package model;
 
 public class Tile {
 
-    private final int number;
+    public final int number;
 
     public Tile(int number) {
         this.number = number;
@@ -11,4 +11,5 @@ public class Tile {
     public int number() {
         return number;
     }
+
 }

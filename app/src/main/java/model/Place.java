@@ -2,13 +2,13 @@ package model;
 
 public class Place {
 
-    private final int x;
+    public final int x;
 
-    private final int y;
+    public final int y;
 
-    private Tile tile;
+    public Tile tile;
 
-    private Board board;
+    public Board board;
 
     public Place(int x, int y, Board board) {
         this.x = x;
@@ -45,7 +45,24 @@ public class Place {
         return hasTile() && board.slidable(this);
     }
 
+    public boolean slidableLeft() {
+        return hasTile() && board.slidableLeft(this);
+    }
+
+    public boolean slidableRight() {
+        return hasTile() && board.slidableRight(this);
+    }
+
+    public boolean slidableUp() {
+        return hasTile() && board.slidableUp(this);
+    }
+
+    public boolean slidableDown() {
+        return hasTile() && board.slidableDown(this);
+    }
+
     public void slide() {
         board.slide(getTile());
     }
+
 }

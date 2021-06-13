@@ -5,11 +5,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.AndroidViewModel;
 
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -28,26 +30,24 @@ import android.widget.Toast;
 
 import model.Board;
 import model.Place;
+import model.Tile;
+
 
 import com.example.android.projekt.BoardView;
 
-public class MainActivity extends AppCompatActivity  {
+public class MainActivity extends AppCompatActivity {
 
-    private Gyroscope gyroscope;
+    public Gyroscope gyroscope;
 
-    private Place place;
+    public static final String TAG = "MainActivity";
 
-    private static final String TAG = "MainActivity";
+    public ViewGroup mainView;
 
-    private ViewGroup mainView;
+    public Board board;
 
-    private Board board;
+    public BoardView boardView;
 
-    private BoardView boardView;
-
-    private int boardSize = 3;
-
-
+    public int boardSize = 3;
 
 
     @Override
@@ -57,36 +57,36 @@ public class MainActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
         mainView = (ViewGroup) findViewById(R.id.mainLayout);
         this.newGame();
+        boardView = new BoardView(this, board);
 
         gyroscope = new Gyroscope(this);
 
         gyroscope.setListener(new Gyroscope.Listener() {
             @Override
-            public void onRotation(float rx, float ry, float rz) {
+            public void onRotation(float rx, float ry, float rz)  {
+                //prawo
+
                 if(ry > 1.0f)
                 {
-
-                    //slide = new Slide(this);
-                    //getWindow().getDecorView().setBackgroundColor(Color.YELLOW);
+                    boardView.SlideRight();
                 }
+                //lewo
+
                 else if(ry <-1.0f)
                 {
-
-
-                    //getWindow().getDecorView().setBackgroundColor(Color.BLUE);
+                    boardView.SlideLeft();
                 }
+
+                //w dół
                 else if(rx > 1.0f)
                 {
-
-
-                    //getWindow().getDecorView().setBackgroundColor(Color.GREEN);
+                    boardView.SlideDown();
                 }
+
+                //w góre
                 else if(rx <-1.0f)
                 {
-
-
-
-                   // getWindow().getDecorView().setBackgroundColor(Color.RED);
+                    boardView.SlideUp();
                 }
             }
         });
@@ -96,20 +96,16 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     protected void onResume() {
         super.onResume();
-
+        boardView.invalidate();
         gyroscope.register();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-
         gyroscope.unregister();
 
     }
-
-
-
 
     private void newGame() {
         this.board = new Board(this.boardSize);
@@ -120,15 +116,6 @@ public class MainActivity extends AppCompatActivity  {
         this.mainView.addView(boardView);
 
     }
-
-    public void changeSize(int newSize) {
-        if (newSize != this.boardSize) {
-            this.boardSize = newSize;
-            this.newGame();
-            boardView.invalidate();
-        }
-    }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -174,12 +161,8 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     private Board.BoardChangeListener boardChangeListener = new Board.BoardChangeListener() {
-        public void tileSlid(Place from, Place to, int finish) {
-
-       }
 
         public void solved(int finish) {
-
             Toast.makeText(getApplicationContext(), "You won!",
                     Toast.LENGTH_LONG).show();
         }
